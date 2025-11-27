@@ -16,3 +16,10 @@ resource "aws_s3_bucket" "secure_bucket" {
   bucket = "acme-tfe-lab1-${var.aws_region}-${random_id.suffix.hex}"
   tags   = local.default_tags
 }
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.secure_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
