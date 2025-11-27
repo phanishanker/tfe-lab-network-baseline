@@ -1,8 +1,3 @@
-variable "environment" {
-  description = "Workspace environment (dev or prod)"
-  type        = string
-}
-
 locals {
   default_tags = {
     Owner       = "platform-team"
