@@ -1,4 +1,46 @@
-# Block public access entirely
+##################################
+# Default Tags for Governance
+##################################
+locals {
+  default_tags = {
+    Owner       = "platform-team"
+    CostCenter  = "CLOUD-PLATFORM"
+    Environment = var.environment
+    ManagedBy   = "Terraform-Enterprise"
+    Project     = "tfe-lab-1"
+  }
+}
+
+##################################
+# Random suffix for S3 bucket name
+##################################
+resource "random_string" "suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
+##################################
+# Secure S3 Bucket Definition
+##################################
+resource "aws_s3_bucket" "secure_bucket" {
+  bucket = "acme-${var.environment}-${random_string.suffix.result}"
+  tags   = local.default_tags
+}
+
+##################################
+# Enable Versioning
+##################################
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.secure_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+##################################
+# Block Public Access
+##################################
 resource "aws_s3_bucket_public_access_block" "secure_block" {
   bucket                  = aws_s3_bucket.secure_bucket.id
   block_public_acls       = true
@@ -7,7 +49,9 @@ resource "aws_s3_bucket_public_access_block" "secure_block" {
   restrict_public_buckets = true
 }
 
-# Default encryption (AES-256)
+##################################
+# Enforce Default Encryption
+##################################
 resource "aws_s3_bucket_server_side_encryption_configuration" "secure_encrypt" {
   bucket = aws_s3_bucket.secure_bucket.id
 
@@ -18,7 +62,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "secure_encrypt" {
   }
 }
 
-# Enforce HTTPS only access (block HTTP)
+##################################
+# Enforce HTTPS Only Access
+##################################
 resource "aws_s3_bucket_policy" "https_only" {
   bucket = aws_s3_bucket.secure_bucket.id
 
